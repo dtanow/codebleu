@@ -20,7 +20,7 @@ AVAILABLE_LANGS = [
     "go",
     "ruby",
     "rust",
-    "typescript"
+    "typescript",
 ]  # keywords available
 
 

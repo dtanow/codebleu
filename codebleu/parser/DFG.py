@@ -1225,13 +1225,13 @@ def DFG_typescript(root_node, index_to_code, states):
     enhanced_for_statement = ["for_in_statement"]  # for...in loops in TypeScript
     while_statement = ["while_statement"]  # While loops
     do_first_statement = []  # No special "do first" statements in TypeScript
-    
+
     states = states.copy()  # Copy states to avoid modifying the input
-    
+
     # Leaf nodes (literals or identifiers)
     if (
-        len(root_node.children) == 0 or 
-        root_node.type in ["string_literal", "string", "number_literal", "template_string"]
+        len(root_node.children) == 0
+        or root_node.type in ["string_literal", "string", "number_literal", "template_string"]
     ) and root_node.type != "comment":
         idx, code = index_to_code[(root_node.start_point, root_node.end_point)]
         if root_node.type == code:  # If node type matches code (e.g., literal), no DFG edge
@@ -1242,7 +1242,7 @@ def DFG_typescript(root_node, index_to_code, states):
             if root_node.type == "identifier":
                 states[code] = [idx]
             return [(code, idx, "comesFrom", [], [])], states
-    
+
     # Variable declarations (e.g., let x: number = 5)
     elif root_node.type in def_statement:
         name = root_node.child_by_field_name("name")  # The identifier (e.g., 'x')
@@ -1267,7 +1267,7 @@ def DFG_typescript(root_node, index_to_code, states):
                     DFG.append((code1, idx1, "comesFrom", [code2], [idx2]))
                 states[code1] = [idx1]
             return sorted(DFG, key=lambda x: x[1]), states
-    
+
     # Assignments (e.g., x = 5 or x += 2)
     elif root_node.type in assignment:
         left_nodes = root_node.child_by_field_name("left")
@@ -1284,7 +1284,7 @@ def DFG_typescript(root_node, index_to_code, states):
                 DFG.append((code1, idx1, "computedFrom", [code2], [idx2]))
             states[code1] = [idx1]
         return sorted(DFG, key=lambda x: x[1]), states
-    
+
     # Increment/decrement (e.g., i++ or ++i)
     elif root_node.type in increment_statement:
         DFG = []
@@ -1296,7 +1296,7 @@ def DFG_typescript(root_node, index_to_code, states):
                 DFG.append((code1, idx1, "computedFrom", [code2], [idx2]))
             states[code1] = [idx1]
         return sorted(DFG, key=lambda x: x[1]), states
-    
+
     # If statements
     elif root_node.type in if_statement:
         DFG = []
@@ -1326,7 +1326,7 @@ def DFG_typescript(root_node, index_to_code, states):
         for key in new_states:
             new_states[key] = sorted(list(set(new_states[key])))
         return sorted(DFG, key=lambda x: x[1]), new_states
-    
+
     # For loops
     elif root_node.type in for_statement:
         DFG = []
@@ -1349,7 +1349,7 @@ def DFG_typescript(root_node, index_to_code, states):
                 dic[(x[0], x[1], x[2])][1] = sorted(list(set(dic[(x[0], x[1], x[2])][1] + x[4])))
         DFG = [(x[0], x[1], x[2], y[0], y[1]) for x, y in sorted(dic.items(), key=lambda t: t[0][1])]
         return sorted(DFG, key=lambda x: x[1]), states
-    
+
     # For...in loops (TypeScript supports this from JavaScript)
     elif root_node.type in enhanced_for_statement:
         pattern = root_node.child_by_field_name("left")  # The variable (e.g., key in for..in)
@@ -1378,7 +1378,7 @@ def DFG_typescript(root_node, index_to_code, states):
                 dic[(x[0], x[1], x[2])][1] = sorted(list(set(dic[(x[0], x[1], x[2])][1] + x[4])))
         DFG = [(x[0], x[1], x[2], y[0], y[1]) for x, y in sorted(dic.items(), key=lambda t: t[0][1])]
         return sorted(DFG, key=lambda x: x[1]), states
-    
+
     # While loops
     elif root_node.type in while_statement:
         DFG = []
@@ -1395,7 +1395,7 @@ def DFG_typescript(root_node, index_to_code, states):
                 dic[(x[0], x[1], x[2])][1] = sorted(list(set(dic[(x[0], x[1], x[2])][1] + x[4])))
         DFG = [(x[0], x[1], x[2], y[0], y[1]) for x, y in sorted(dic.items(), key=lambda t: t[0][1])]
         return sorted(DFG, key=lambda x: x[1]), states
-    
+
     # Default case: Recursively process children
     else:
         DFG = []
